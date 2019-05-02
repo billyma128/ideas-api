@@ -46,6 +46,9 @@ export class UserEntity {
     if (showToken) {
       responseObject.token = token;
     }
+    if (this.ideas) {
+      responseObject.ideas = this.ideas;
+    }
     return responseObject;
   }
 

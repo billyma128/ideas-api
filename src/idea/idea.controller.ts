@@ -16,7 +16,7 @@ import { User } from '../user/user.decorator';
 import { IdeaDTO } from './idea.dto';
 import { IdeaService } from './idea.service';
 
-@Controller('idea')
+@Controller('api/ideas')
 export class IdeaController {
   private logger = new Logger('IdeaController');
   constructor(private readonly ideaService: IdeaService) {}
@@ -45,15 +45,22 @@ export class IdeaController {
     return this.ideaService.read(id);
   }
 
-  @UsePipes(new ValidationPipe())
   @Put(':id')
-  updateIdea(@Param('id') id: string, @Body() data: Partial<IdeaDTO>) {
-    this.logger.log(JSON.stringify(data));
-    return this.ideaService.update(id, data);
+  @UseGuards(new AuthGuard())
+  @UsePipes(new ValidationPipe())
+  updateIdea(
+    @Param('id') id: string,
+    @User('id') user: string,
+    @Body() data: Partial<IdeaDTO>,
+  ) {
+    this.logData({ id, data, user });
+    return this.ideaService.update(id, user, data);
   }
 
   @Delete(':id')
-  destroyIdea(@Param('id') id: string) {
-    return this.ideaService.destroy(id);
+  @UseGuards(new AuthGuard())
+  destroyIdea(@Param('id') id: string, @User('id') user) {
+    this.logData({ id, user });
+    return this.ideaService.destroy(id, user);
   }
 }
