@@ -3,16 +3,16 @@ import { UserRO } from '../user/user.dto';
 
 export class IdeaDTO {
   @IsString()
-  idea: string;
+  readonly idea: string;
 
   @IsString()
-  description: string;
+  readonly description: string;
 }
 
 export class IdeaRO {
   id: string;
-  updated: Date;
   created: Date;
+  updated: Date;
   idea: string;
   description: string;
   author: UserRO;

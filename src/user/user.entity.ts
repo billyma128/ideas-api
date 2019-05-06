@@ -9,7 +9,6 @@ import {
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import { IdeaEntity } from '../idea/idea.entity';
 import { UserRO } from './user.dto';
@@ -22,9 +21,6 @@ export class UserEntity {
   @CreateDateColumn()
   created: Date;
 
-  @UpdateDateColumn()
-  updated: Date;
-
   @Column({
     type: 'text',
     unique: true,
@@ -34,7 +30,7 @@ export class UserEntity {
   @Column('text')
   password: string;
 
-  @OneToMany(type => IdeaEntity, idea => idea.author)
+  @OneToMany(type => IdeaEntity, idea => idea.author, { cascade: true })
   ideas: IdeaEntity[];
 
   @ManyToMany(type => IdeaEntity, { cascade: true })
@@ -46,27 +42,36 @@ export class UserEntity {
     this.password = await bcrypt.hash(this.password, 10);
   }
 
-  toResponseObject(showToken = true): UserRO {
-    const { id, created, username, token } = this;
-    const responseObject: UserRO = { id, created, username };
-    if (showToken) {
-      responseObject.token = token;
-    }
-    if (this.ideas) {
-      responseObject.ideas = this.ideas;
-    }
-    if (this.bookmarks) {
-      responseObject.bookmarks = this.bookmarks;
-    }
-    return responseObject;
-  }
-
-  async comparePassword(attempt: string) {
+  async comparePassword(attempt: string): Promise<boolean> {
     return await bcrypt.compare(attempt, this.password);
   }
 
-  private get token() {
+  toResponseObject(showToken: boolean = true): UserRO {
+    const { id, created, username, token } = this;
+    const responseObject: UserRO = {
+      id,
+      created,
+      username,
+    };
+
+    if (this.ideas) {
+      responseObject.ideas = this.ideas;
+    }
+
+    if (this.bookmarks) {
+      responseObject.bookmarks = this.bookmarks;
+    }
+
+    if (showToken) {
+      responseObject.token = token;
+    }
+
+    return responseObject;
+  }
+
+  private get token(): string {
     const { id, username } = this;
+
     return jwt.sign(
       {
         id,

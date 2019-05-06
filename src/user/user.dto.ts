@@ -3,10 +3,10 @@ import { IdeaEntity } from '../idea/idea.entity';
 
 export class UserDTO {
   @IsNotEmpty()
-  username: string;
+  readonly username: string;
 
   @IsNotEmpty()
-  password: string;
+  readonly password: string;
 }
 
 export class UserRO {

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Post,
   UseGuards,
@@ -14,15 +15,20 @@ import { User } from '../user/user.decorator';
 import { CommentDTO } from './comment.dto';
 import { CommentService } from './comment.service';
 
-@Controller('api/comment')
+@Controller('api/comments')
 export class CommentController {
+  private logger = new Logger('CommentController');
   constructor(private commentService: CommentService) {}
 
   @Get('idea/:id')
-  showCommentsByIdea(@Param('id') idea: string) {}
+  showCommentsByIdea(@Param('id') idea: string) {
+    return this.commentService.showByIdea(idea);
+  }
 
   @Get('user/:id')
-  showCommentsByUser(@Param('id') user: string) {}
+  showCommentsByUser(@Param('id') user: string) {
+    return this.commentService.showByUser(user);
+  }
 
   @Post('idea/:id')
   @UseGuards(new AuthGuard())
@@ -31,7 +37,9 @@ export class CommentController {
     @Param('id') idea: string,
     @User('id') user: string,
     @Body() data: CommentDTO,
-  ) {}
+  ) {
+    return this.commentService.create(idea, user, data);
+  }
 
   @Get(':id')
   showComment(@Param('id') id: string) {

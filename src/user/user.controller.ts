@@ -2,7 +2,9 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
+  Query,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
@@ -17,19 +19,28 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get('api/users')
-  @UseGuards(new AuthGuard())
-  showAllUsers(@User() user) {
-    console.log(user);
-    return this.userService.showAll();
+  showAllUsers(@Query('page') page: number) {
+    return this.userService.showAll(page);
   }
 
-  @Post('login')
+  @Get('api/users/:username')
+  showOneUser(@Param('username') username: string) {
+    return this.userService.read(username);
+  }
+
+  @Get('auth/whoami')
+  @UseGuards(new AuthGuard())
+  showMe(@User('username') username: string) {
+    return this.userService.read(username);
+  }
+
+  @Post('auth/login')
   @UsePipes(new ValidationPipe())
   login(@Body() data: UserDTO) {
     return this.userService.login(data);
   }
 
-  @Post('register')
+  @Post('auth/register')
   @UsePipes(new ValidationPipe())
   register(@Body() data: UserDTO) {
     return this.userService.register(data);

@@ -17,21 +17,31 @@ export class CommentService {
     private userRepository: Repository<UserEntity>,
   ) {}
 
-  async showByIdea(id: string) {
-    const idea = await this.ideaRepository.findOne({
-      where: { id },
-      relations: ['comments', 'comments.author', 'comments.idea'],
-    });
-
-    return idea.comments;
+  private toResponseObject(comment: CommentEntity) {
+    return {
+      ...comment,
+      author: comment.author && comment.author.toResponseObject(),
+    };
   }
 
-  async showByUser(id: string) {
+  async showByIdea(ideaId: string, page: number = 1) {
     const comments = await this.commentRepository.find({
-      where: { author: { id } },
-      relations: ['author'],
+      where: { idea: { id: ideaId } },
+      relations: ['author', 'idea'],
+      take: 25,
+      skip: 25 * (page - 1),
     });
-    return comments;
+    return comments.map(comment => this.toResponseObject(comment));
+  }
+
+  async showByUser(userId: string, page: number = 1) {
+    const comments = await this.commentRepository.find({
+      where: { author: { id: userId } },
+      relations: ['author', 'idea'],
+      take: 25,
+      skip: 25 * (page - 1),
+    });
+    return comments.map(comment => this.toResponseObject(comment));
   }
 
   async show(id: string) {
@@ -39,23 +49,19 @@ export class CommentService {
       where: { id },
       relations: ['author', 'idea'],
     });
-
-    return comment;
+    return this.toResponseObject(comment);
   }
 
   async create(ideaId: string, userId: string, data: CommentDTO) {
     const idea = await this.ideaRepository.findOne({ where: { id: ideaId } });
     const user = await this.userRepository.findOne({ where: { id: userId } });
-
     const comment = await this.commentRepository.create({
       ...data,
       idea,
       author: user,
     });
-
     await this.commentRepository.save(comment);
-
-    return comment;
+    return this.toResponseObject(comment);
   }
 
   async destroy(id: string, userId: string) {
@@ -72,7 +78,6 @@ export class CommentService {
     }
 
     await this.commentRepository.remove(comment);
-
-    return comment;
+    return this.toResponseObject(comment);
   }
 }
